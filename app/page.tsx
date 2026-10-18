@@ -30,6 +30,27 @@ const GAMES = [
     color: "bg-tangerine",
   },
   {
+    href: "/draw-it",
+    emoji: "🖍️",
+    name: "Draw It!",
+    tagline: "Draw the secret word on the phone. First to guess scores!",
+    color: "bg-leaf",
+  },
+  {
+    href: "/emoji-riddles",
+    emoji: "🧩",
+    name: "Emoji Riddles",
+    tagline: "🐷🐷🐷🐺 = ? Crack the emoji code before everyone else!",
+    color: "bg-indigo",
+  },
+  {
+    href: "/categories",
+    emoji: "🔤",
+    name: "Categories A–Z",
+    tagline: "An animal starting with B? Name as many as you can, fast!",
+    color: "bg-plum",
+  },
+  {
     href: "/would-you-rather",
     emoji: "🤔",
     name: "Would You Rather",

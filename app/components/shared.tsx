@@ -359,6 +359,32 @@ export function useWakeLock() {
   }, []);
 }
 
+/** Ticks down to `endsAt`, beeping in the last five seconds, and calls `onTimeUp` at zero. Keeps the screen on. */
+export function useTimeLeft(endsAt: number, onTimeUp: () => void) {
+  const [now, setNow] = useState(Date.now);
+  const timeUp = useEffectEvent(onTimeUp);
+  useWakeLock();
+
+  useEffect(() => {
+    let lastTick = Infinity;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      const left = Math.ceil((endsAt - t) / 1000);
+      if (left <= 0) {
+        clearInterval(id);
+        timeUp();
+      } else if (left <= 5 && left < lastTick) {
+        lastTick = left;
+        tick();
+      }
+    }, 200);
+    return () => clearInterval(id);
+  }, [endsAt]);
+
+  return { left: Math.max(0, Math.ceil((endsAt - now) / 1000)), msLeft: Math.max(0, endsAt - now) };
+}
+
 /** Counts 3, 2, 1 with beeps, flashes `go` and `label`, then calls `onDone`. */
 export function Countdown({ go, label, onDone }: { go: string; label: string; onDone: () => void }) {
   const steps = ["3", "2", "1", go];
@@ -380,6 +406,108 @@ export function Countdown({ go, label, onDone }: { go: string; label: string; on
         {steps[step]}
       </span>
       {going && <p className="text-5xl font-bold text-coral">{label}</p>}
+    </div>
+  );
+}
+
+/* ---------- Scores ---------- */
+
+export type ScoreRow = { player: Player; score: number };
+
+/** Highest score first. */
+export function rankByScore(players: Player[], scores: Record<string, number>): ScoreRow[] {
+  return players.map((player) => ({ player, score: scores[player.id] ?? 0 })).sort((a, b) => b.score - a.score);
+}
+
+/** `gains` labels players who just scored, e.g. `{ [id]: "+1" }`. */
+export function Scoreboard({ rows, gains = {} }: { rows: ScoreRow[]; gains?: Record<string, string> }) {
+  return (
+    <ol className="flex w-full flex-col gap-2 rounded-3xl bg-white p-3 shadow-sm">
+      {rows.map(({ player, score }) => (
+        <li key={player.id} className="flex items-center gap-3 rounded-2xl bg-cream px-2 py-2">
+          <Avatar player={player} size="sm" />
+          <span className="flex-1 truncate text-left text-xl font-semibold text-ink">{player.name}</span>
+          {gains[player.id] && <span className="text-lg font-bold text-teal">{gains[player.id]}</span>}
+          <span className="w-10 text-right text-2xl font-bold tabular-nums text-ink">{score}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** The top scorers, big. `rows` must be ranked. */
+export function Winners({ rows }: { rows: ScoreRow[] }) {
+  const top = rows[0]?.score ?? 0;
+  const winners = top > 0 ? rows.filter((r) => r.score === top).map((r) => r.player) : [];
+  if (!winners.length) return <p className="pt-4 text-3xl font-bold text-ink">Nobody scored this time! 🙃</p>;
+
+  return (
+    <>
+      <p className="pt-4 text-3xl font-bold text-ink">🏆 {winners.length > 1 ? "It's a tie!" : "The winner is…"}</p>
+      <div className="flex flex-wrap justify-center gap-6">
+        {winners.map((p) => (
+          <div key={p.id} className="animate-pop flex flex-col items-center gap-2">
+            <Avatar player={p} size={winners.length > 2 ? "md" : "xl"} />
+            <span className="text-4xl font-bold text-coral">{p.name}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xl font-semibold text-ink/60">
+        {top} point{top === 1 ? "" : "s"}
+      </p>
+    </>
+  );
+}
+
+/** Seconds left as a pill that turns red near the end. */
+export function TimePill({ left }: { left: number }) {
+  const hurry = left <= 10;
+  return (
+    <span
+      role="timer"
+      aria-label={`${left} seconds left`}
+      className={`rounded-full px-4 py-1 text-2xl font-bold tabular-nums text-white ${hurry ? "animate-pulse bg-coral" : "bg-teal"}`}
+    >
+      ⏱ {left}
+    </span>
+  );
+}
+
+/* ---------- Pick who guessed ---------- */
+
+export function WhoGuessedScreen({
+  guessers,
+  title = "Who guessed it?",
+  backLabel,
+  onPick,
+  onBack,
+}: {
+  guessers: Player[];
+  title?: string;
+  backLabel: string;
+  onPick: (id: string) => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex flex-1 flex-col items-center gap-6 text-center">
+      <p className="pt-4 text-3xl font-bold text-ink">{title}</p>
+      <div className="grid w-full grid-cols-2 gap-3">
+        {guessers.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => onPick(p.id)}
+            className="flex flex-col items-center gap-2 rounded-3xl bg-white p-4 shadow-sm active:scale-95"
+          >
+            <Avatar player={p} />
+            <span className="w-full truncate text-xl font-bold text-ink">{p.name}</span>
+          </button>
+        ))}
+      </div>
+      <div className="mt-auto w-full">
+        <BigButton variant="secondary" onClick={onBack}>
+          {backLabel}
+        </BigButton>
+      </div>
     </div>
   );
 }

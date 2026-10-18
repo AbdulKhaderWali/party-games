@@ -46,6 +46,21 @@ const TruthOrDareGame = dynamic(() => import("./TruthOrDareGame"), {
   loading: () => <Loading emoji="🎲" />,
 });
 
+const DrawItGame = dynamic(() => import("./DrawItGame"), {
+  ssr: false,
+  loading: () => <Loading emoji="🖍️" />,
+});
+
+const EmojiRiddlesGame = dynamic(() => import("./EmojiRiddlesGame"), {
+  ssr: false,
+  loading: () => <Loading emoji="🧩" />,
+});
+
+const CategoriesGame = dynamic(() => import("./CategoriesGame"), {
+  ssr: false,
+  loading: () => <Loading emoji="🔤" />,
+});
+
 export function ImposterLoader() {
   return <ImposterGame />;
 }
@@ -72,4 +87,16 @@ export function WouldYouRatherLoader() {
 
 export function TruthOrDareLoader() {
   return <TruthOrDareGame />;
+}
+
+export function DrawItLoader() {
+  return <DrawItGame />;
+}
+
+export function EmojiRiddlesLoader() {
+  return <EmojiRiddlesGame />;
+}
+
+export function CategoriesLoader() {
+  return <CategoriesGame />;
 }
