@@ -35,3 +35,22 @@ export function timeUpBuzz() {
   beep(220, 0.9, 0.25);
   navigator.vibrate?.([400, 150, 400]);
 }
+
+/** A noisy explosion for Hot Potato. */
+export function boom() {
+  navigator.vibrate?.([600]);
+  if (!ctx) return;
+  const seconds = 0.9;
+  const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * seconds), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length) ** 2;
+  const source = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  source.buffer = buffer;
+  filter.type = "lowpass";
+  filter.frequency.value = 900;
+  gain.gain.value = 0.6;
+  source.connect(filter).connect(gain).connect(ctx.destination);
+  source.start();
+}

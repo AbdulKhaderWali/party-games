@@ -23,6 +23,27 @@ const GAMES = [
     color: "bg-coral",
   },
   {
+    href: "/hot-potato",
+    emoji: "🥔",
+    name: "Hot Potato",
+    tagline: "Name something, pass the phone – don't be holding it when it goes BOOM!",
+    color: "bg-tangerine",
+  },
+  {
+    href: "/would-you-rather",
+    emoji: "🤔",
+    name: "Would You Rather",
+    tagline: "Fly or be invisible? Pick a side and find your brain twin!",
+    color: "bg-sky",
+  },
+  {
+    href: "/truth-or-dare",
+    emoji: "🎲",
+    name: "Truth or Dare",
+    tagline: "Kind truths and silly dares. Collect the most stars!",
+    color: "bg-berry",
+  },
+  {
     href: "/mafia",
     emoji: "😈",
     name: "Mafia",

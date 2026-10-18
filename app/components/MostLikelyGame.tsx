@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MIN_PLAYERS,
   QUESTION_OPTIONS,
@@ -13,13 +13,15 @@ import {
 } from "@/lib/most-likely";
 import { PROMPT_PACKS } from "@/lib/most-likely-prompts";
 import type { Player } from "@/lib/players";
-import { ding, tick, unlockSound } from "@/lib/sound";
+import { unlockSound } from "@/lib/sound";
 import type { Word } from "@/lib/words";
 import {
   Avatar,
   BigButton,
   CategoryPicker,
+  Countdown,
   HomeLink,
+  NumberChoice,
   PlayersSection,
   QuitBar,
   startLabel,
@@ -94,7 +96,7 @@ export default function MostLikelyGame() {
         />
       )}
 
-      {phase.name === "countdown" && <CountdownScreen onDone={() => setPhase({ name: "pick" })} />}
+      {phase.name === "countdown" && <Countdown go="👉" label="POINT!" onDone={() => setPhase({ name: "pick" })} />}
 
       {phase.name === "pick" && <PickScreen prompt={prompts[index]} players={players} onDone={answer} />}
 
@@ -168,26 +170,12 @@ function Setup({
         onChange={(ids) => update({ categoryIds: ids })}
       />
 
-      <section className="rounded-3xl bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-xl font-bold text-ink">How many questions?</h2>
-        <div className="grid grid-cols-4 gap-2">
-          {QUESTION_OPTIONS.map((q) => {
-            const on = settings.questions === q;
-            return (
-              <button
-                key={q}
-                onClick={() => update({ questions: q })}
-                aria-pressed={on}
-                className={`rounded-2xl border-2 py-3 text-xl font-bold transition-colors ${
-                  on ? "border-sun bg-sun/25 text-ink" : "border-ink/10 bg-cream text-ink/50"
-                }`}
-              >
-                {q}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <NumberChoice
+        title="How many questions?"
+        options={QUESTION_OPTIONS}
+        value={settings.questions}
+        onChange={(questions) => update({ questions })}
+      />
 
       <div className="mt-auto pt-2">
         <BigButton onClick={onStart} disabled={players.length < MIN_PLAYERS}>
@@ -217,32 +205,6 @@ function AskScreen({ caption, prompt, onPoint }: { caption: string; prompt: Word
       <div className="mt-auto w-full">
         <BigButton onClick={onPoint}>3… 2… 1… Point! 👉</BigButton>
       </div>
-    </div>
-  );
-}
-
-/* ---------- 3, 2, 1, point! ---------- */
-
-const COUNTDOWN = ["3", "2", "1", "👉"];
-
-function CountdownScreen({ onDone }: { onDone: () => void }) {
-  const [step, setStep] = useState(0);
-  const done = useEffectEvent(onDone);
-
-  useEffect(() => {
-    if (step < COUNTDOWN.length - 1) tick();
-    else ding();
-    const id = setTimeout(() => (step < COUNTDOWN.length - 1 ? setStep(step + 1) : done()), step < 3 ? 800 : 1200);
-    return () => clearTimeout(id);
-  }, [step]);
-
-  const pointing = step === COUNTDOWN.length - 1;
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center" role="timer">
-      <span key={step} className={`animate-pop font-bold text-ink ${pointing ? "text-[10rem]" : "text-[12rem] tabular-nums"}`}>
-        {COUNTDOWN[step]}
-      </span>
-      {pointing && <p className="text-5xl font-bold text-coral">POINT!</p>}
     </div>
   );
 }

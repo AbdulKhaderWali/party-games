@@ -31,6 +31,21 @@ const MafiaGame = dynamic(() => import("./MafiaGame"), {
   loading: () => <Loading emoji="😈" />,
 });
 
+const HotPotatoGame = dynamic(() => import("./HotPotatoGame"), {
+  ssr: false,
+  loading: () => <Loading emoji="🥔" />,
+});
+
+const WouldYouRatherGame = dynamic(() => import("./WouldYouRatherGame"), {
+  ssr: false,
+  loading: () => <Loading emoji="🤔" />,
+});
+
+const TruthOrDareGame = dynamic(() => import("./TruthOrDareGame"), {
+  ssr: false,
+  loading: () => <Loading emoji="🎲" />,
+});
+
 export function ImposterLoader() {
   return <ImposterGame />;
 }
@@ -45,4 +60,16 @@ export function MostLikelyLoader() {
 
 export function MafiaLoader() {
   return <MafiaGame />;
+}
+
+export function HotPotatoLoader() {
+  return <HotPotatoGame />;
+}
+
+export function WouldYouRatherLoader() {
+  return <WouldYouRatherGame />;
+}
+
+export function TruthOrDareLoader() {
+  return <TruthOrDareGame />;
 }

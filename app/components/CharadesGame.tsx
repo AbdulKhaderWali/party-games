@@ -30,6 +30,7 @@ import {
   Stepper,
   startLabel,
   usePlayers,
+  useWakeLock,
 } from "./shared";
 
 type Phase =
@@ -337,24 +338,6 @@ function CardScreen({
 }
 
 /* ---------- Acting with the countdown ---------- */
-
-function useWakeLock() {
-  useEffect(() => {
-    let lock: WakeLockSentinel | undefined;
-    let done = false;
-    navigator.wakeLock
-      ?.request("screen")
-      .then((l) => {
-        if (done) void l.release();
-        else lock = l;
-      })
-      .catch(() => {});
-    return () => {
-      done = true;
-      void lock?.release();
-    };
-  }, []);
-}
 
 function ActingScreen({
   actor,

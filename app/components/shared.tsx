@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
+import { ding, tick } from "@/lib/sound";
 import { AVATARS, MAX_PLAYERS, loadPlayers, nextFreeAvatar, savePlayers, type Player } from "@/lib/players";
 import type { Category } from "@/lib/words";
 
@@ -172,7 +173,7 @@ export function CategoryPicker({
   onChange,
   title = "Words",
 }: {
-  categories: Category[];
+  categories: Pick<Category, "id" | "name" | "emoji">[];
   selected: string[];
   onChange: (ids: string[]) => void;
   title?: string;
@@ -202,6 +203,42 @@ export function CategoryPicker({
               </span>
               <span className="flex-1">{c.name}</span>
               {on && <span aria-hidden>✓</span>}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/** A row of number buttons, e.g. how many questions or rounds. */
+export function NumberChoice({
+  title,
+  options,
+  value,
+  onChange,
+}: {
+  title: string;
+  options: number[];
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <section className="rounded-3xl bg-white p-4 shadow-sm">
+      <h2 className="mb-3 text-xl font-bold text-ink">{title}</h2>
+      <div className="grid grid-cols-4 gap-2">
+        {options.map((q) => {
+          const on = value === q;
+          return (
+            <button
+              key={q}
+              onClick={() => onChange(q)}
+              aria-pressed={on}
+              className={`rounded-2xl border-2 py-3 text-xl font-bold transition-colors ${
+                on ? "border-sun bg-sun/25 text-ink" : "border-ink/10 bg-cream text-ink/50"
+              }`}
+            >
+              {q}
             </button>
           );
         })}
@@ -298,5 +335,51 @@ export function HoldCard({
         </div>
       </div>
     </button>
+  );
+}
+
+/* ---------- 3, 2, 1, go! ---------- */
+
+/** Keeps the screen on while mounted, e.g. while a timer runs. */
+export function useWakeLock() {
+  useEffect(() => {
+    let lock: WakeLockSentinel | undefined;
+    let done = false;
+    navigator.wakeLock
+      ?.request("screen")
+      .then((l) => {
+        if (done) void l.release();
+        else lock = l;
+      })
+      .catch(() => {});
+    return () => {
+      done = true;
+      void lock?.release();
+    };
+  }, []);
+}
+
+/** Counts 3, 2, 1 with beeps, flashes `go` and `label`, then calls `onDone`. */
+export function Countdown({ go, label, onDone }: { go: string; label: string; onDone: () => void }) {
+  const steps = ["3", "2", "1", go];
+  const [step, setStep] = useState(0);
+  const done = useEffectEvent(onDone);
+  const last = steps.length - 1;
+
+  useEffect(() => {
+    if (step < last) tick();
+    else ding();
+    const id = setTimeout(() => (step < last ? setStep(step + 1) : done()), step < last ? 800 : 1200);
+    return () => clearTimeout(id);
+  }, [step, last]);
+
+  const going = step === last;
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center" role="timer">
+      <span key={step} className={`animate-pop font-bold text-ink ${going ? "text-[10rem]" : "text-[12rem] tabular-nums"}`}>
+        {steps[step]}
+      </span>
+      {going && <p className="text-5xl font-bold text-coral">{label}</p>}
+    </div>
   );
 }
